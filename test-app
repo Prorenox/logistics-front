@@ -1,0 +1,64 @@
+apiVersion: application.kubero.dev/v1alpha1
+kind: KuberoApp
+metadata:
+  name: espocrm
+spec:
+  name: espocrm
+  deploymentstrategy: docker
+  image:
+    repository: espocrm/espocrm
+    tag: latest
+    containerPort: "8080"
+  addons:
+  - displayName: Kubero Mysql
+    env: []
+    icon: /img/addons/MySQL.png
+    id: kubero-operator
+    kind: KuberoMysql
+    resourceDefinitions:
+      KuberoMysql:
+        apiVersion: application.kubero.dev/v1alpha1
+        kind: KuberoMysql
+        metadata:
+          name: mysql2
+        spec:
+          mysql:
+            auth:
+              createDatabase: true
+              database: espocrm
+              password: database_password
+              rootPassword: root_password
+              username: espocrm
+          global:
+            storageClass: standard
+          primary:
+            persistence:
+              accessModes:
+                - ReadWriteMany
+              size: 1Gi
+  envVars:
+  - name: ESPOCRM_DATABASE_HOST
+    value: mysql2
+  - name: ESPOCRM_DATABASE_USER
+    value: espocrm
+  - name: ESPOCRM_DATABASE_PASSWORD
+    value: database_password
+  - name: ESPOCRM_ADMIN_USERNAME
+    value: admin
+  - name: ESPOCRM_ADMIN_PASSWORD
+    value: password
+  - name: ESPOCRM_SITE_URL
+    value: "http://localhost:8080"
+  cronjobs: []
+  extraVolumes:
+  - accessModes:
+    - ReadWriteOnce
+    emptyDir: false
+    mountPath: /bitnami/espocrm
+    name: espocrm-data
+    size: 1Gi
+    storageClass: standard
+  web:
+    replicaCount: 1
+  worker:
+    replicaCount: 0
